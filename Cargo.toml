@@ -4,3 +4,16 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+anyhow = "1.0.98"
+aws-config = "1.6.3"
+aws-credential-types = "1.2.3"
+aws-sdk-cloudwatchlogs = "1.86.0"
+aws-sdk-glue = "1.98.0"
+aws-sdk-sts = "1.72.0"
+chrono = "0.4.41"
+chrono-tz = "0.10.3"
+clap = { version = "4.5.39", features = ["derive"] }
+futures = "0.3.31"
+rand = "0.9.1"
+regex = "1.11.1"
+tokio = { version = "1.45.1", features = ["full"] }
