@@ -1,2 +1,53 @@
-/target
+# === Rust-related ===
+/target/
+**/*.rs.bk
+
+# === Cargo ===
+/Cargo.lock  # Only ignore if you're writing a library
+.cargo/
+.cargo-target/
+
+# === Build tools ===
+/build/
+/dist/
+/out/
+
+# === IDEs & Editors ===
+.idea/
+.vscode/
+*.code-workspace
+
+# === macOS system files ===
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# === Byebug / debug files ===
+*.dSYM/
+*.log
+*.trace
+
+# === Misc ===
+*.swp
+*.swo
+*.tmp
+*.bak
+*.old
+
+# === Tests and coverage ===
+/coverage/
+/htmlcov/
+/*.lcov
+
+# === Binaries ===
+*.exe
+*.dll
+*.so
+*.dylib
+*.bin
+
+# === Env & secrets ===
+.env
+.env.*
+*.secret
+*.key
