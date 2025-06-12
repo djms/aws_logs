@@ -14,7 +14,7 @@ use std::time::Instant;
 // use std::io::Write; // needed to flush
 
 static CONCURRENCY_LIMIT: usize = 500;
-static IDLE_LIMIT: u64 = 10;
+static IDLE_LIMIT: u64 = 600;
 use std::collections::HashMap;
 
 use crate::printcr;
@@ -150,7 +150,11 @@ impl DawsLogs {
             }
             Service::Lambda => {
                 // instance.set_log_stream(instance.get_last_stream().await?);
+                let idle_elap = Instant::now();
                 loop {
+                    if idle_elap.elapsed() > tokio::time::Duration::from_secs(IDLE_LIMIT) {
+                        return Err(anyhow!("None LogStream"));
+                    }
                     let all_streams = instance.get_all_streams().await?;
                     instance.filtered_streams =
                         instance.filter_streams(all_streams, instance.last_n_hours)?; // unwrap handle when defining the service 
@@ -464,6 +468,7 @@ impl DawsLogs {
 
     async fn chk_log_stream(&self) -> Result<()> {
         if let Some(stream) = &self.log_stream {
+            let idle_elap = Instant::now();
             if stream.is_empty() {
                 return Err(anyhow!("Empty LogStream"));
             }
@@ -490,6 +495,9 @@ impl DawsLogs {
                 );
                 daws_internal::sleep(1..2).await;
                 crate::printcr!();
+                if idle_elap.elapsed() > tokio::time::Duration::from_secs(IDLE_LIMIT) {
+                    return Err(anyhow!("None LogStream"));
+                }
             }
         } else {
             return Err(anyhow!("None LogStream"));
