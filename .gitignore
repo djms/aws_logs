@@ -12,6 +12,20 @@
 /dist/
 /out/
 
+input.json
+# Terraform files
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+*.tfvars.json
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.lock.hcl
+
 # === IDEs & Editors ===
 .idea/
 .vscode/
