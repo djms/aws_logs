@@ -14,7 +14,6 @@ use std::time::Instant;
 // use std::io::Write; // needed to flush
 
 static CONCURRENCY_LIMIT: usize = 500;
-static IDLE_LIMIT: u64 = 600;
 use std::collections::HashMap;
 
 use crate::printcr;
@@ -47,6 +46,8 @@ struct Args {
         help = "Use when getting lambda logs"
     )]
     last_n_hours: u64,
+    #[arg(short, long,default_value_t = 10_u64)]
+    idle: u64,
 }
 /*
 enum GlueJobRunStatus {
@@ -76,6 +77,7 @@ pub struct DawsLogs {
     log_stream: Option<String>,
     job_name: Option<String>,
     last_n_hours: u64,
+    idle: u64,
     filtered_streams: Vec<LogStream>,
 }
 
@@ -135,6 +137,7 @@ impl DawsLogs {
             log_stream: args.stream,
             job_name: None::<String>,
             last_n_hours: args.last_n_hours,
+            idle: args.idle,
             filtered_streams: Vec::new(),
         };
         instance.chk_credentials().await?; // wow - This should be in internal, but I'm leaving it here to know how this can be done.
@@ -152,7 +155,7 @@ impl DawsLogs {
                 // instance.set_log_stream(instance.get_last_stream().await?);
                 let idle_elap = Instant::now();
                 loop {
-                    if idle_elap.elapsed() > tokio::time::Duration::from_secs(IDLE_LIMIT) {
+                    if idle_elap.elapsed() > tokio::time::Duration::from_secs(instance.idle) {
                         return Err(anyhow!("None LogStream"));
                     }
                     let all_streams = instance.get_all_streams().await?;
@@ -300,8 +303,8 @@ impl DawsLogs {
                         println!("[{name}] [{timestamp_str}] - {message}");
                     }
                 }
-                if idle_elap.elapsed() > tokio::time::Duration::from_secs(IDLE_LIMIT) {
-                    // println!("[INFO] No new logs in the past {IDLE_LIMIT} sec");
+                if idle_elap.elapsed() > tokio::time::Duration::from_secs(self.idle) {
+                    // println!("[INFO] No new logs in the past {self.idle} sec");
                     break 'outer;
                 }
                 state.next_token = r.next_forward_token().map(|s| s.to_string()); // Option<String> != Option<&str> -> Option<&str> map to get Some(str)
@@ -386,8 +389,8 @@ impl DawsLogs {
                 break;
             }
             if new_token == next_token {
-                if idle_elap.elapsed() > tokio::time::Duration::from_secs(IDLE_LIMIT) {
-                    // println!("[INFO] No new logs in the past {IDLE_LIMIT} sec");
+                if idle_elap.elapsed() > tokio::time::Duration::from_secs(self.idle) {
+                    // println!("[INFO] No new logs in the past {self.idle} sec");
                     break;
                 }
             }
@@ -495,7 +498,7 @@ impl DawsLogs {
                 );
                 daws_internal::sleep(1..2).await;
                 crate::printcr!();
-                if idle_elap.elapsed() > tokio::time::Duration::from_secs(IDLE_LIMIT) {
+                if idle_elap.elapsed() > tokio::time::Duration::from_secs(self.idle) {
                     return Err(anyhow!("None LogStream"));
                 }
             }
